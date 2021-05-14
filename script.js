@@ -1,8 +1,8 @@
 var canvasOptions = {
     // canvasWidth:window.innerWidth,
     // canvasHeight:window.innerHeight,
-    canvasWidth:400,
-    canvasHeight:400,
+    canvasWidth:350,
+    canvasHeight:350,
     bgColor:"gold"
 }
 var {canvasWidth,canvasHeight,bgColor} = canvasOptions;
