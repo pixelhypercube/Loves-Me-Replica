@@ -1,13 +1,16 @@
 var canvasOptions = {
-    windowWidth:window.innerWidth,
-    windowHeight:window.innerHeight,
+    // canvasWidth:window.innerWidth,
+    // canvasHeight:window.innerHeight,
+    canvasWidth:400,
+    canvasHeight:400,
     bgColor:"gold"
 }
-var {windowWidth,windowHeight,bgColor} = canvasOptions;
+var {canvasWidth,canvasHeight,bgColor} = canvasOptions;
 
 let face,petals = [];
 let lovesMe,clicked = false;
 let initialFrameCount;
+let lovesMeScore = 0;
 let restartBtn = new RestartBtn();
 
 function genPetals(n,r) {
@@ -20,11 +23,13 @@ function genPetals(n,r) {
 function restartGame() {
     face = new Face(width/2,height/2,80,80,"orange");
     lovesMe = random(0,1)<0.5;
-    genPetals(floor(random(1,25)),70);
+    genPetals(floor(random(1,16)),70);
+    clicked = false;
 }
 
 function setup() {
-    createCanvas(windowWidth,windowHeight);
+    let renderer = createCanvas(canvasWidth,canvasHeight);
+    renderer.parent("canvas");
     restartGame();
     initialFrameCount = frameCount;
 }
@@ -62,84 +67,123 @@ function draw() {
                 petals[i].gravity = 0.1;
             }
         }
-        if (petals[i].y>windowHeight+100) {
+        if (petals[i].y>canvasHeight+100) {
             petals.splice(i,1);
+            if (petals.length==0) {
+                if (lovesMe) {
+                    if (lovesMeScore>=0) {
+                        lovesMeScore+=1;
+                    } else {
+                        lovesMeScore = 1;
+                    }
+                } else {
+                    if (lovesMeScore<=0) {
+                        lovesMeScore-=1;
+                    } else {
+                        lovesMeScore = -1;
+                    }
+                }
+            }
         }
     }
     face.show();
     face.update();
+    /* 
+    
+    f8b8b8 - d80800
+    f7e7ff - a539ef
+    
+    */
     if (clicked && ((!petals.map(i=>i["clicked"]).every(i=>i) || petals.length==0))) {
-        fill((lovesMe)?"navy":"maroon");
+        push();
+        fill((lovesMe)?"#d80800":"#a539ef");
         textAlign(CENTER,CENTER);
         textStyle(BOLD);
-        textSize(50);
-        text((lovesMe)?"Loves Me":"Loves Me Not",width/2,height/8);
-        
+        stroke(0);
+        strokeWeight(2);
+        if (petals.length==0) {
+            if (lovesMeScore>0 && lovesMeScore<3) {
+                textSize(40);
+                text("Loves Me",width/2,height/8);           
+            } else if (lovesMeScore>=3) {
+                textSize(30);
+                text("Really Loves Me!",width/2,height/8);
+            } else if (lovesMeScore<0 && lovesMeScore>-3) {
+                textSize(40);
+                text("Loves Me Not",width/2,height/8);   
+            } else if (lovesMeScore<=-3) {
+                textSize(30);
+                text("Really Loves Me... Not!",width/2,height/8);
+            }
+        } else {
+            textSize(40);
+            text((lovesMe)?"Loves Me":"Loves Me Not",width/2,height/8);
+        }
+        pop();
+
         if (initialFrameCount>frameCount-100) {
+            push();
             face.color = (lovesMe)?"red":"lime";
             textAlign(CENTER,CENTER);
             textSize(40);
+            stroke(0);
+            strokeWeight(1);
             text((lovesMe)?"😀":"😐",face.x,face.y+5);
+            pop();
         } else {
             if (petals.length!=0) {
+                push();
                 face.color = "orange";
                 textAlign(CENTER,CENTER);
                 textSize(40);
                 text("🙂",face.x,face.y+5);
+                pop();
             } else {
+                push();
                 face.color = (lovesMe)?"red":"navy";
                 textAlign(CENTER,CENTER);
                 textSize(40);
                 text((lovesMe)?"😍":"😭",face.x,face.y+5);
+                pop();
             }
         }
     } else {
         face.color = "orange";
+        push();
         textAlign(CENTER,CENTER);
         textSize(40);
         text("🙂",face.x,face.y+5);
+        pop();
     }
     if (petals.length==0) {
-        // restartBtn.renderBtn();
+        push();
+        fill("black");
+        textAlign(CENTER,CENTER);
+        textSize(20);
+        text("Press any key \nor click anywhere to restart!",width/2,height/1.2);
+        pop();
     }
 }
 
 function windowResized() {
-    resizeCanvas(windowWidth,windowHeight);
+    resizeCanvas(canvasWidth,canvasHeight);
 }
 function mousePressed() {
-    // for (let i = petals.length-1;i>=0;i--) {
-    //     if (petals[i].clicked) {
-            
-    //         break;
-    //     }
-    // }
-}
-function mouseClicked() {
     for (let i = petals.length-1;i>=0;i--) {
         if (petals[i].detect()) {
             if (!petals[i].clicked) {
                 lovesMe = !lovesMe;
                 initialFrameCount = frameCount;
+                clicked = true;
             }
             petals[i].clicked = true;
-            clicked = true;
             break;
         }
     }
-    if (petals.length==0 && restartBtn.intersect()) {
+    if (petals.length==0) {
         restartGame();
     }
 }
-function mouseMoved() {
-    // console.log(mouseIsPressed)
-    // for (let i = petals.length-1;i>=0;i--) {
-    //     if (petals[i].click()) {
-    //         if (mouseIsPressed) {
-    //             // console.log("HEY")
-    //             petals[i].grab(mouseX,mouseY);
-    //         }
-    //         // break;
-    //     }
-    // }
+function keyPressed(e) {
+    restartGame();
 }
