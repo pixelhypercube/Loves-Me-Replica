@@ -11,18 +11,29 @@ let face,petals = [];
 let lovesMe,clicked = false;
 let initialFrameCount;
 let lovesMeScore = 0;
+let makeAllPetalsFall = false;
 let restartBtn = new RestartBtn();
 
 function genPetals(n,r) {
+    if (n==1 || n==2) {
+        makeAllPetalsFall = true;
+    } else {
+        makeAllPetalsFall = false;
+    }
     for (let i = 0;i<n;i++) {
         var angle = (PI/n*2)*i;
-        petals.push(new Petal(width/2+atan(cos(angle))*r,height/2+atan(sin(angle))*r,80,50,angle,"rgb(255,230,120)"));
+        var petal = new Petal(width/2+atan(cos(angle))*r,height/2+atan(sin(angle))*r,80,50,angle,"rgb(255,230,120)");
+        if (makeAllPetalsFall) {
+            petal.clicked = true;
+        }
+        petals.push(petal);
     }
 }
 
 function restartGame() {
     face = new Face(width/2,height/2,80,80,"orange");
-    lovesMe = random(0,1)<0.5;
+    // lovesMe = random(0,1)<0.5;
+    lovesMe = 0;
     genPetals(floor(random(1,16)),70);
     clicked = false;
 }
@@ -67,6 +78,9 @@ function draw() {
                 petals[i].gravity = 0.1;
             }
         }
+        if (makeAllPetalsFall) {
+            petals[i].gravity = 0.1;
+        }
         if (petals[i].y>canvasHeight+100) {
             petals.splice(i,1);
             if (petals.length==0) {
@@ -101,7 +115,7 @@ function draw() {
         textStyle(BOLD);
         stroke(0);
         strokeWeight(2);
-        if (petals.length==0) {
+        if (petals.length==0 && !makeAllPetalsFall) {
             if (lovesMeScore>0 && lovesMeScore<3) {
                 textSize(40);
                 text("Loves Me",width/2,height/8);           
@@ -147,6 +161,13 @@ function draw() {
                 pop();
             }
         }
+    } else if (makeAllPetalsFall && petals.length==0) {
+        push();
+        face.color = (lovesMe)?"red":"navy";
+        textAlign(CENTER,CENTER);
+        textSize(40);
+        text((lovesMe)?"😍":"😭",face.x,face.y+5);
+        pop();
     } else {
         face.color = "orange";
         push();
@@ -185,5 +206,7 @@ function mousePressed() {
     }
 }
 function keyPressed(e) {
-    restartGame();
+    if (petals.length==0) {
+        restartGame();
+    }
 }
