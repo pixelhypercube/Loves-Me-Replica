@@ -11,22 +11,22 @@ let face,petals = [];
 let lovesMe,clicked = false;
 let initialFrameCount;
 let lovesMeScore = 0;
-let makeAllPetalsFall = false;
+let makeAllPetalsFallCount = 0;
 let restartBtn = new RestartBtn();
 
 function genPetals(n,r) {
-    if (n==1 || n==2) {
-        makeAllPetalsFall = true;
-    } else {
-        makeAllPetalsFall = false;
-    }
     for (let i = 0;i<n;i++) {
         var angle = (PI/n*2)*i;
         var petal = new Petal(width/2+atan(cos(angle))*r,height/2+atan(sin(angle))*r,80,50,angle,"rgb(255,230,120)");
-        if (makeAllPetalsFall) {
+        if (makeAllPetalsFallCount>=1) {
             petal.clicked = true;
         }
         petals.push(petal);
+    }
+    if (n==1 || n==2) {
+        makeAllPetalsFallCount += 1;
+    } else {
+        makeAllPetalsFallCount = 0;
     }
 }
 
@@ -34,7 +34,7 @@ function restartGame() {
     face = new Face(width/2,height/2,80,80,"orange");
     // lovesMe = random(0,1)<0.5;
     lovesMe = 0;
-    genPetals(floor(random(1,16)),70);
+    genPetals(floor(random(1,21)),70);
     clicked = false;
 }
 
@@ -69,18 +69,42 @@ function draw() {
     for (let i = 0;i<petals.length;i++) {
         petals[i].show();
         petals[i].update();
-        if (petals[i].detect()) {
-            if (petals[i].clicked) {
-                if (mouseIsPressed) {
+        if (petals[i].clicked) {
+            petals[i].gravity = 0.1;
+            if (mouseIsPressed) {
+                // petals[i].vy = 0;
+                if (petals[i].detect()) {
                     petals[i].vy = 0;
                     petals[i].grab(mouseX,mouseY);
                 }
-                petals[i].gravity = 0.1;
             }
+        } else if (makeAllPetalsFallCount>=1) {
+            // if (mouseIsPressed && petals[i].detect()) {
+            //     petals[i].vy = 0;
+            //     petals[i].grab(mouseX,mouseY);
+            // }
+            // petals[i].gravity = 0.1;
+
+            // if (petals[i].detect()) {
+            //     if (mouseIsPressed) {
+            //         petals[i].vy = 0;
+            //         petals[i].grab(mouseX,mouseY);
+            //     }
+            //     petals[i].gravity = 0.1;
+            // }
         }
-        if (makeAllPetalsFall) {
-            petals[i].gravity = 0.1;
-        }
+        // if (petals[i].detect()) {
+        //     if (petals[i].clicked) {
+        //         if (mouseIsPressed) {
+        //             petals[i].vy = 0;
+        //             petals[i].grab(mouseX,mouseY);
+        //         }
+        //         petals[i].gravity = 0.1;
+        //     }
+        // }
+        // if (makeAllPetalsFallCount>=1) {
+        //     petals[i].gravity = 0.1;
+        // }
         if (petals[i].y>canvasHeight+100) {
             petals.splice(i,1);
             if (petals.length==0) {
@@ -115,7 +139,7 @@ function draw() {
         textStyle(BOLD);
         stroke(0);
         strokeWeight(2);
-        if (petals.length==0 && !makeAllPetalsFall) {
+        if (petals.length==0 && !(makeAllPetalsFallCount>=1)) {
             if (lovesMeScore>0 && lovesMeScore<3) {
                 textSize(40);
                 text("Loves Me",width/2,height/8);           
@@ -135,7 +159,7 @@ function draw() {
         }
         pop();
 
-        if (initialFrameCount>frameCount-100) {
+        if (initialFrameCount>frameCount-50) {
             push();
             face.color = (lovesMe)?"red":"lime";
             textAlign(CENTER,CENTER);
@@ -161,7 +185,7 @@ function draw() {
                 pop();
             }
         }
-    } else if (makeAllPetalsFall && petals.length==0) {
+    } else if (petals.length==0) {
         push();
         face.color = (lovesMe)?"red":"navy";
         textAlign(CENTER,CENTER);
